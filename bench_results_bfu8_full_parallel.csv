@@ -1,0 +1,11 @@
+mode,tpb,avg_ms,min_ms,max_ms,gpu_mem_MB
+barrett_bfu8_full_parallel,1,0.337403,0.260785,0.71258,1092.38
+barrett_bfu8_full_parallel,2,0.325631,0.257668,0.72503,1092.38
+barrett_bfu8_full_parallel,4,0.350685,0.257213,0.82128,1092.38
+barrett_bfu8_full_parallel,8,0.337137,0.264486,1.47467,1092.38
+barrett_bfu8_full_parallel,16,0.370040,0.291375,1.08970,1092.38
+montgomery_bfu8_full_parallel,1,0.329791,0.23980,1.64977,1092.38
+montgomery_bfu8_full_parallel,2,0.348682,0.265422,0.71575,1092.38
+montgomery_bfu8_full_parallel,4,0.366534,0.279130,0.86012,1092.38
+montgomery_bfu8_full_parallel,8,0.314659,0.251898,0.82157,1092.38
+montgomery_bfu8_full_parallel,16,0.342967,0.261516,0.72045,1092.38

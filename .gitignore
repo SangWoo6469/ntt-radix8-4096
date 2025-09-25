@@ -1,0 +1,39 @@
+# Build directories
+build/
+cmake-build-*/
+
+# Executables
+ntt_demo
+test_simple
+test_simple_main
+
+# Object files
+*.o
+*.obj
+
+# Compiled libraries
+*.a
+*.lib
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test results
+test_results.csv
