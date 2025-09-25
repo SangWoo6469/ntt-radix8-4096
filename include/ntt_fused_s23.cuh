@@ -1,5 +1,6 @@
 #pragma once
 #include "modutil.cuh"
+#include "bfu8_simple.cuh"
 #include "bfu8.cuh"
 
 #ifndef TILES_PER_BLOCK_S23
@@ -13,7 +14,9 @@ __global__ void ntt_radix8_fused_s23_tile64(
     uint64_t mod, int N) // N=4096
 {
     constexpr int R=8;
-    constexpr int TPB = TILES_PER_BLOCK_S23;  // residue-타일 개수/블록
+    constexpr int TPB = TILES_PER_BLOCK_S23;
+    // 가드: blockDim.x = 64 * TPB 체크
+    if (blockDim.x != 64 * TPB) return;
     const int cols    = R * TPB;              // 8*TPB
     const int tid     = threadIdx.x;
     const int row     = tid / cols;           // 0..7
@@ -22,7 +25,7 @@ __global__ void ntt_radix8_fused_s23_tile64(
     const int lane    = col % R;              // 0..7
     const int r0      = blockIdx.x * TPB;     // residue 시작
     const int r       = r0 + sub;
-    if (r >= 64) return;
+    if (row >= 8 || lane >= 8 || sub >= TPB || r >= 64) return;
 
     extern __shared__ uint64_t sm[];
     uint64_t* sm_val = sm;                          // [8*cols]

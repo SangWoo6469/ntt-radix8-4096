@@ -27,9 +27,11 @@ int main(){
     uint64_t bfu_omegaR = compute_bfu_omega_R(q, R, g); // BFU m용 (R-th)
 
     // (선택) 검증
-    // assert(is_exact_order(gamma_2N, 2*N, q));
-    // assert(is_exact_order(omega_N,    N,   q));
-    // assert(is_exact_order(bfu_omegaR, R,   q));
+    // γ(2N-원시근)·BFU_ω(R-원시근) 재확인
+    auto p=[](uint64_t a,uint64_t e,uint64_t q){__uint128_t r=1,b=a%q;while(e){if(e&1)r=(r*b)%q;b=(b*b)%q;e>>=1;}return (uint64_t)r;};
+    assert(p(gamma_2N, 2*N, q)==1 && p(gamma_2N, N, q)!=1);
+    assert(p(gamma_2N, 64, q)!=1); // s=1 index=64
+    assert(p(bfu_omegaR, R, q)==1 && p(bfu_omegaR, 1, q)!=1);
 
     // (2) BFU8 M 계산 (+ 선택: 상수만 Montgomery 1배 인코딩)
     auto m8 = compute_bfu8_m(q, bfu_omegaR);
@@ -39,6 +41,13 @@ int main(){
     constexpr bool kMontConstEncode = false;
 #endif
     upload_bfu8_m_with_mode(m8, q, kMontConstEncode);
+    
+    // BFU8_M 초기화 확인
+    std::cout << "BFU8_M values: ";
+    for (int i = 0; i < 8; i++) {
+        std::cout << m8[i] << " ";
+    }
+    std::cout << std::endl;
 
     // (3) t_list 생성: ★ gamma는 반드시 2N-원시근을 사용 ★
     std::vector<uint64_t> tlist;
@@ -87,6 +96,11 @@ int main(){
         for (auto &x: poly) x = (uint64_t)rand() % q;
         cudaEventRecord(evS);
         ntt4096_run_s01_s23(poly, tlist, stage_off, q);
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            std::cerr << "CUDA kernel error: " << cudaGetErrorString(err) << std::endl;
+            return 1;
+        }
         cudaEventRecord(evE); cudaEventSynchronize(evE);
         float ms=0.0f; cudaEventElapsedTime(&ms, evS, evE);
         sum_ms += ms; if (ms<min_ms) min_ms=ms; if (ms>max_ms) max_ms=ms;

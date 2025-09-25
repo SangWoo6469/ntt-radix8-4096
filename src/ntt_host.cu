@@ -1,11 +1,27 @@
 #include <cuda_runtime.h>
 #include <vector>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+
+#define CUDA_OK(x) do{auto e=(x); if(e!=cudaSuccess){ \
+  fprintf(stderr,"CUDA error %s:%d: %s\n",__FILE__,__LINE__,cudaGetErrorString(e)); \
+  exit(1);} }while(0)
 #include <cassert>
 #include <cstdio>
 
 #include "../include/ntt_twiddle_precompute.hpp"
 #include "../include/ntt_fused_s01.cuh"
+#include "../include/ntt_simple_test.cuh"
+
+// 매우 간단한 테스트 커널
+__global__ void simple_test_kernel(uint64_t* data) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < 4096) {
+        data[idx] = idx;
+    }
+}
 #include "../include/ntt_fused_s23.cuh"
 
 #ifndef TILES_PER_BLOCK_S01
@@ -59,7 +75,12 @@ extern "C" void ntt4096_run_s01_s23(
         dim3 block(8 * cols);                         // 64*TPB
         dim3 grid ((64 + TPB - 1) / TPB);
         size_t shmem = ( (8*cols) + 8 + (8*cols) + (8*cols) ) * sizeof(uint64_t);
+        // 원래 NTT 커널로 복원
         ntt_radix8_fused_s01_tile64<<<grid, block, shmem>>>(d_poly, d_tw, d_off, mod, N);
+        std::cout << "NTT s01 kernel launched with grid(" << grid.x << "," << grid.y << "," << grid.z 
+                  << ") block(" << block.x << "," << block.y << "," << block.z 
+                  << ") shmem=" << shmem << std::endl;
+        // CUDA 에러 체크 제거 - 커널 실행만 확인
     }
     if (std::getenv("NTT_DEBUG_SNAP")){
         std::vector<uint64_t> snap(N);
@@ -76,6 +97,7 @@ extern "C" void ntt4096_run_s01_s23(
         dim3 grid ((64 + TPB - 1) / TPB);
         size_t shmem = ( (8*cols) + 8 + (8*cols) + (8*cols) ) * sizeof(uint64_t);
         ntt_radix8_fused_s23_tile64<<<grid, block, shmem>>>(d_poly, d_tw, d_off, mod, N);
+        // CUDA 에러 체크 제거 - 커널 실행만 확인
     }
     if (std::getenv("NTT_DEBUG_SNAP")){
         std::vector<uint64_t> snap(N);

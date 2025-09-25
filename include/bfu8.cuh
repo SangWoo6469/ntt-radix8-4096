@@ -1,7 +1,8 @@
 #pragma once
 #include "modutil.cuh"
 
-__constant__ uint64_t BFU8_M[8];
+// BFU8_M은 bfu8_constants.cu에서 정의됨
+extern __device__ uint64_t BFU8_M[8];
 
 // Winograd Radix-8 (파이썬 참조와 동일 단계) - 순차 처리
 __device__ inline void BFU8_winograd_sequential(uint64_t a[8], uint64_t mod){

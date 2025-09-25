@@ -12,6 +12,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 
 add_library(ntt_core
   src/ntt_host.cu
+  src/bfu8_constants.cu
 )
 
 add_executable(ntt_demo

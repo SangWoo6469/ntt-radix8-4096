@@ -4,8 +4,8 @@
 #include <cuda_runtime.h>
 #include "../include/modutil.cuh"
 
-// 디바이스 상수 배열 선언
-extern __constant__ uint64_t BFU8_M[8];
+// BFU8_M은 bfu8_constants.cu에서 정의됨
+extern __device__ uint64_t BFU8_M[8];
 
 static inline uint64_t modexp64_host(uint64_t a, uint64_t e, uint64_t mod){
     __uint128_t r=1,b=a%mod; while(e){ if(e&1) r=(r*b)%mod; b=(b*b)%mod; e>>=1; } return (uint64_t)r;
@@ -33,7 +33,7 @@ inline std::vector<uint64_t> compute_bfu8_m(uint64_t mod, uint64_t omega){
 
 // 디바이스 업로드(그대로)
 inline void upload_bfu8_m(const std::vector<uint64_t>& m){
-    cudaMemcpyToSymbol(BFU8_M, m.data(), sizeof(uint64_t)*8);
+    cudaMemcpy(BFU8_M, m.data(), sizeof(uint64_t)*8, cudaMemcpyHostToDevice);
 }
 
 // (옵션) Montgomery 1배 인코딩 후 업로드

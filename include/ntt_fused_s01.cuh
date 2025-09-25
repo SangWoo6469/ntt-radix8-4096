@@ -1,5 +1,6 @@
 #pragma once
 #include "modutil.cuh"
+#include "bfu8_simple.cuh"
 #include "bfu8.cuh"
 
 #ifndef TILES_PER_BLOCK_S01
@@ -13,7 +14,9 @@ __global__ void ntt_radix8_fused_s01_tile64(
     uint64_t mod, int N) // N=4096
 {
     constexpr int R=8;
-    constexpr int TPB = TILES_PER_BLOCK_S01;   // 블록당 연속 64-타일 개수
+    constexpr int TPB = TILES_PER_BLOCK_S01;
+    // 가드: blockDim.x = 64 * TPB 체크
+    if (blockDim.x != 64 * TPB) return;
     const int cols    = R * TPB;               // 8*TPB
     const int tid     = threadIdx.x;           // 0..(64*TPB-1)
     const int row     = tid / cols;            // 0..7
@@ -22,7 +25,7 @@ __global__ void ntt_radix8_fused_s01_tile64(
     const int lane    = col % R;               // 0..7
     const int tile0   = blockIdx.x * TPB;      // 이 블록의 첫 타일(0..63)
     const int tile    = tile0 + sub;
-    if (tile >= 64) return;
+    if (row >= 8 || lane >= 8 || sub >= TPB || tile >= 64) return;
 
     extern __shared__ uint64_t sm[];
     uint64_t* sm_val = sm;                          // [8*cols] = 64*TPB
